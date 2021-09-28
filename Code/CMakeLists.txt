@@ -18,4 +18,4 @@ set(EXTRA_COMPONENT_DIRS "components/peripheral"
 #			)  # This reduces the number of redundant components included
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(Anywave)
+project(SmartHammer)
