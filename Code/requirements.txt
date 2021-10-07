@@ -1,0 +1,4 @@
+rgb should be blue for low battery, red for charging, off for stopped charging, white for powered on device
+
+
+vibration :for a start, we can use 2 levels 50% and 100% 

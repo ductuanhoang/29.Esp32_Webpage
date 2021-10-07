@@ -86,56 +86,37 @@ enum
 #define GPIO_USER_LED_BLUE 4
 
 #define GPIO_OUTPUT_PIN_SEL ((1ULL<<GPIO_USER_LED_GREEN) | (1ULL<<GPIO_USER_LED_RED) | (1ULL<<GPIO_USER_LED_BLUE)) 
-typedef union
+
+typedef enum
 {
-	uint8_t sum_error;
-	struct
-	{
-		uint8_t rever_bit : 1;
-		uint8_t laser_error : 1;
-		uint8_t leser_alarm : 1;
-		uint8_t high_temp : 1;
-		uint8_t low_temp : 1;
-		uint8_t fan_error : 1;
-		uint8_t fan_speed_compensation_start : 1;
-		uint8_t fan_speed_alarm : 1;
-	};
-} dust_error_t;
+	kHammer_None,
+	kHammer_Active
+}e_Hammer_detect;
 
 typedef struct
 {
-	float humidiy;
-	float temperature;
-	uint16_t pm25;
-	uint16_t pm10;
-	bool rain_status;
-	float rain_metter;
-
-	bool dust_error;
-	bool sht3x_error;
-	bool rain_error;
+	uint8_t vibration_level;
+	e_Hammer_detect hammer_detect;
 } sensor_data_t;
 
 typedef struct
 {
 	bool wifi_status;
 	bool mqtt_status;
+	char mac_add[20];
 	sensor_data_t sensor;
 } deive_data_t;
 
 typedef struct
 {
-	int time_interval_send_data;
-	int time_interval_check_ota;
-	char jobId[32];
 	char mqtt_topic_pub[100];
 	char mqtt_topic_pub_err[100];
 	char mqtt_topic_jobsub[100];
 	char mqtt_topic_jobpub[100];
-
 } mqtt_config_t;
 
 extern mqtt_config_t mqtt_config;
+
 extern deive_data_t deive_data;
 
 uint32_t usertimer_gettick(void);

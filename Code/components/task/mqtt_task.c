@@ -153,28 +153,28 @@ static void mqtt_app_start(void)
 {
     // mqtt_get_cer();
     char client_id[50] = "sdk-nodejs-e07c7d1a-1def-45b2-a492-f6874c5dd09e";
-    // strcat(client_id, wifi_get_mac());
+    sprintf(deive_data.mac_add, "%s", wifi_get_mac());
     APP_LOGI("Client id: %s", client_id);
-    const esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = "mqtts://am25aqsnybb6p-ats.iot.sa-east-1.amazonaws.com:8883",
-        .event_handle = mqtt_event_handler,
-        .client_cert_pem = (const char *)client_cert_pem_start,
-        .client_key_pem = (const char *)client_key_pem_start,
-        .cert_pem = (const char *)server_cert_pem_start,
-        .client_id = client_id,
-        // .use_global_ca_store = true,
-    };
+    // const esp_mqtt_client_config_t mqtt_cfg = {
+    //     .uri = "mqtts://am25aqsnybb6p-ats.iot.sa-east-1.amazonaws.com:8883",
+    //     .event_handle = mqtt_event_handler,
+    //     .client_cert_pem = (const char *)client_cert_pem_start,
+    //     .client_key_pem = (const char *)client_key_pem_start,
+    //     .cert_pem = (const char *)server_cert_pem_start,
+    //     .client_id = client_id,
+    //     // .use_global_ca_store = true,
+    // };
 
     //using cloud mqt
-    // const esp_mqtt_client_config_t mqtt_cfg = {
-    //     .host = "m13.cloudmqtt.com",
-    //     .port = 11734,
-    //     .client_id = "1234adc",
-    //     .username = "wcewiofp",
-    //     .password = "fyFZMCLNvoD9",
-    //     .keepalive = 60,
-    //     .event_handle = mqtt_event_handler,
-    // };
+    const esp_mqtt_client_config_t mqtt_cfg = {
+        .host = "m13.cloudmqtt.com",
+        .port = 11734,
+        .client_id = "1234adc",
+        .username = "wcewiofp",
+        .password = "fyFZMCLNvoD9",
+        .keepalive = 60,
+        .event_handle = mqtt_event_handler,
+    };
     // memset(mqtt_cfg.client_id, 0x00, sizeof(MQTT_MAX_CLIENT_LEN));
     memset(mqtt_config.mqtt_topic_pub, 0x00, sizeof(mqtt_config.mqtt_topic_pub));
     memset(mqtt_config.mqtt_topic_pub_err, 0x00, sizeof(mqtt_config.mqtt_topic_pub_err));
@@ -264,117 +264,26 @@ static void mqtt_send_task(void *pvParameters)
     {
         if (deive_data.mqtt_status == true)
         {
-            if (state_send_data == 0)
+            if( deive_data.sensor.hammer_detect == 1)
             {
-                previous_time_start = usertimer_gettick();
-                state_send_data = 1;
+                APP_LOGI("-----user send data to the cloud");
+                char *message_packet = (char *)malloc(200 * sizeof(char));
+                memset(message_packet, 0x00, 200 * sizeof(char));
+                json_packet_message_sensor(message_packet);
+                APP_LOGI("send : = %s", message_packet);
+                msg_id = esp_mqtt_client_publish(client, mqtt_config.mqtt_topic_pub, message_packet, 0, 0, 0);
+                memset(message_packet, 0x00, 200 * sizeof(char));
+                free(message_packet);
+                APP_LOGI("sent publish successful, msg_id=%d", msg_id);
+                deive_data.sensor.hammer_detect = 0; // clean hammer detection
             }
-            else if (state_send_data == 1)
-            {
-                if ((usertimer_gettick() - previous_time_start) > (10 * 1000))
-                {
-                    APP_LOGI("-----user send data to the cloud");
-                    state_send_data = 0;
-                    // time_inter_val_send = true;
-                    char *message_packet = (char *)malloc(200 * sizeof(char));
-                    memset(message_packet, 0x00, 200 * sizeof(char));
-                    json_packet_message_sensor(message_packet);
-                    APP_LOGI("send : = %s", message_packet);
-                    msg_id = esp_mqtt_client_publish(client, mqtt_config.mqtt_topic_pub, message_packet, 0, 0, 0);
-                    memset(message_packet, 0x00, 200 * sizeof(char));
-                    free(message_packet);
-                    ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
-                }
-            }
-
-            // if (time_inter_val_send)
-            // {
-            //     error_message_send();
-            // }
         }
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 /***********************************************************************************************************************
 * End of file
 ***********************************************************************************************************************/
-uint32_t previous_time_error = 0;
-uint8_t state_send_error = 0;
-static void error_message_send(void)
-{
-    int msg_id;
-    switch (state_send_error)
-    {
-    case 0:
-        previous_time_error = usertimer_gettick();
-        state_send_error = 1;
-        break;
-    case 1:
-        if (deive_data.sensor.dust_error)
-        {
-            if (usertimer_gettick() - previous_time_error > 5000)
-            {
-                char *message_packet = (char *)malloc(200 * sizeof(char));
-                memset(message_packet, 0x00, 200 * sizeof(char));
-                json_packet_message_error(message_packet, 1);
-                msg_id = esp_mqtt_client_publish(client, mqtt_config.mqtt_topic_pub_err, message_packet, 0, 0, 0);
-                memset(message_packet, 0x00, 200 * sizeof(char));
-                free(message_packet);
-
-                previous_time_error = usertimer_gettick();
-                state_send_error = 2;
-            }
-        }
-        else
-            state_send_error = 2;
-        break;
-    case 2:
-        if (deive_data.sensor.sht3x_error)
-        {
-            if (usertimer_gettick() - previous_time_error > 5000)
-            {
-                char *message_packet = (char *)malloc(200 * sizeof(char));
-                memset(message_packet, 0x00, 200 * sizeof(char));
-                json_packet_message_error(message_packet, 2);
-                msg_id = esp_mqtt_client_publish(client, mqtt_config.mqtt_topic_pub_err, message_packet, 0, 0, 0);
-                memset(message_packet, 0x00, 200 * sizeof(char));
-                free(message_packet);
-
-                previous_time_error = usertimer_gettick();
-                state_send_error = 3;
-            }
-        }
-        else
-            state_send_error = 3;
-        break;
-
-    case 3:
-        if (deive_data.sensor.rain_error)
-        {
-            if (usertimer_gettick() - previous_time_error > 5000)
-            {
-                char *message_packet = (char *)malloc(200 * sizeof(char));
-                memset(message_packet, 0x00, 200 * sizeof(char));
-                json_packet_message_error(message_packet, 3);
-                msg_id = esp_mqtt_client_publish(client, mqtt_config.mqtt_topic_pub_err, message_packet, 0, 0, 0);
-                memset(message_packet, 0x00, 200 * sizeof(char));
-                free(message_packet);
-
-                previous_time_error = usertimer_gettick();
-                state_send_error = 0;
-            }
-        }
-        else
-        {
-            state_send_error = 0;
-            time_inter_val_send = false;
-        }
-        break;
-    default:
-        break;
-    }
-}
-
 static char *wifi_get_mac(void)
 {
     char *mac_add;

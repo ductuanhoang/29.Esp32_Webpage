@@ -22,22 +22,11 @@
 /***********************************************************************************************************************
 * Macro definitions
 ***********************************************************************************************************************/
-static char error_table[5][6] =
-    {
-        "E0001" // Không có mạng
-        "E0002" // Không kết nối được MQTT
-        "E0003" // Lỗi cảm biến nhiệt độ/độ ẩm
-        "E0004" // Lỗi cảm biến bụi
-        "E0005" // Lỗi cảm biến mưa
-};
+
 /***********************************************************************************************************************
 * Typedef definitions
 ***********************************************************************************************************************/
-typedef enum
-{
-    E_JOB_ID_01 = 1,
-    E_JOB_ID_02 = 2
-} job_id_t;
+
 /***********************************************************************************************************************
 * Private global variables and functions
 ***********************************************************************************************************************/
@@ -50,8 +39,7 @@ extern void flash_save_data(void);
 /***********************************************************************************************************************
 * Imported global variables and functions (from other files)
 ***********************************************************************************************************************/
-int old_time_interval_check_ota = 0;
-int old_time_interval_send_data = 0;
+
 /***********************************************************************************************************************
 * Function Name:
 * Description  :
@@ -82,21 +70,10 @@ bool json_parser_job(const char *message, uint16_t length)
                 value = cJSON_GetObjectItem(jobDocument, "value");
                 if (value)
                 {
-                    old_time_interval_check_ota = mqtt_config.time_interval_check_ota;
-                    old_time_interval_send_data = mqtt_config.time_interval_send_data;
+                    if (cJSON_GetObjectItem(value, "VIBRATION_VALUE")->valueint != 0)
+                        deive_data.sensor.vibration_level = cJSON_GetObjectItem(value, "VIBRATION_VALUE")->valueint;
 
-                    if (cJSON_GetObjectItem(value, "INTERVAL_CHECK_OTA")->valueint != 0)
-                        mqtt_config.time_interval_check_ota = cJSON_GetObjectItem(value, "INTERVAL_CHECK_OTA")->valueint;
-                    if (cJSON_GetObjectItem(value, "INTERVAL_UPDATE")->valueint != 0)
-                        mqtt_config.time_interval_send_data = cJSON_GetObjectItem(value, "INTERVAL_UPDATE")->valueint;
-
-                    if ((old_time_interval_check_ota != mqtt_config.time_interval_send_data) |
-                        (old_time_interval_send_data != mqtt_config.time_interval_send_data))
-                    {
-                        flash_save_data();
-                    }
-                    APP_LOGI("time check ota config = %d", mqtt_config.time_interval_check_ota);
-                    APP_LOGI("time check update data config = %d", mqtt_config.time_interval_send_data);
+                    APP_LOGI("vibration control = %d", deive_data.sensor.vibration_level);
                 }
                 else
                 {
@@ -114,6 +91,10 @@ bool json_parser_job(const char *message, uint16_t length)
                 status = false;
             }
         }
+        else
+        {
+            APP_LOGD("unknow jobDocument");
+        }
     }
     else
     {
@@ -122,12 +103,12 @@ bool json_parser_job(const char *message, uint16_t length)
     }
 
     // coppy to JobId
-    if (status == true)
-    {
-        sprintf(mqtt_config.jobId, "%s", cJSON_GetObjectItem(root2, "jobId")->valuestring);
-        APP_LOGI("mqtt_config.jobId = %s", mqtt_config.jobId);
-    }
-    APP_LOGI("end process 1");
+    // if (status == true)
+    // {
+    //     sprintf(mqtt_config.jobId, "%s", cJSON_GetObjectItem(root2, "jobId")->valuestring);
+    //     APP_LOGI("mqtt_config.jobId = %s", mqtt_config.jobId);
+    // }
+    // APP_LOGI("end process 1");
     // cJSON_Delete(value);
     // free(operation);
     // cJSON_Delete(jobDocument);
@@ -141,13 +122,10 @@ bool json_parser_job(const char *message, uint16_t length)
 * Function Name:
 * Description  :
  {
-   "currentSensorStateData":
+   "smarthammerdata":
    {
-     "measure_rain": 1,
-     "meter_rain": 1.2,
-     "measure_pm25": 30,
-     "measure_temperature": 23,
-     "measure_humidity": 50
+     "vibration": 1,
+     "acc_detect": 0
    }
  }
 * Arguments    : none
@@ -160,14 +138,10 @@ void json_packet_message_sensor(char *message_packet)
     cJSON *root = NULL;
     cJSON *subroot = NULL;
     root = cJSON_CreateObject();
-    subroot = cJSON_AddObjectToObject(root, "currentSensorStateData");
+    subroot = cJSON_AddObjectToObject(root, deive_data.mac_add);
 
-    cJSON_AddNumberToObject(subroot, "measure_rain", deive_data.sensor.rain_status);
-    cJSON_AddNumberToObject(subroot, "meter_rain", deive_data.sensor.rain_metter);
-    cJSON_AddNumberToObject(subroot, "measure_pm25", deive_data.sensor.pm25);
-    cJSON_AddNumberToObject(subroot, "measure_pm100", deive_data.sensor.pm10);
-    cJSON_AddNumberToObject(subroot, "measure_temperature", deive_data.sensor.temperature);
-    cJSON_AddNumberToObject(subroot, "measure_humidity", deive_data.sensor.humidiy);
+    cJSON_AddNumberToObject(subroot, "vibration", deive_data.sensor.vibration_level);
+    cJSON_AddNumberToObject(subroot, "acc_detect", deive_data.sensor.hammer_detect);
 
     // APP_LOGD("message = %s", cJSON_PrintUnformatted(root));
 
@@ -175,23 +149,6 @@ void json_packet_message_sensor(char *message_packet)
     cJSON_free(subroot);
     cJSON_free(root);
     // return cJSON_PrintUnformatted(root);
-}
-
-void json_packet_message_error(char *message_packet, uint8_t sensor_error)
-{
-    cJSON *root = NULL;
-    root = cJSON_CreateObject();
-
-    if (sensor_error == 1)
-        cJSON_AddStringToObject(root, "errorCode", "E0004"); // dust
-    else if (sensor_error == 2)
-        cJSON_AddStringToObject(root, "errorCode", "E0003"); // sht
-    else if (sensor_error == 3)
-        cJSON_AddStringToObject(root, "errorMsg", "E0005"); // rain
-    cJSON_AddStringToObject(root, "errorMsg", "Unable to install update");
-    APP_LOGD("message = %s", cJSON_PrintUnformatted(root));
-    sprintf(message_packet, "%s", cJSON_PrintUnformatted(root));
-    cJSON_free(root);
 }
 /***********************************************************************************************************************
 * End of file

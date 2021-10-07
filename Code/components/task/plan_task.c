@@ -33,7 +33,7 @@ static void user_buttons_callback(uint8_t _button_number, e_BUTTON_EVENT _event)
 /***********************************************************************************************************************
 * Exported global variables and functions (to be accessed by other files)
 ***********************************************************************************************************************/
-
+extern void flash_erase_all_partions(void);
 /***********************************************************************************************************************
 * Imported global variables and functions (from other files)
 ***********************************************************************************************************************/
@@ -71,8 +71,19 @@ static void PlantControl_Task(void *pvParameters)
 
 static void user_buttons_callback(uint8_t _button_number, e_BUTTON_EVENT _event)
 {
-	APP_LOGI("buttons call = %d -- %d", _button_number, _event);
-	vibration_set_duty(30);
+	if (_event == kBUTTONS_EVENT_PRESS)
+	{
+		APP_LOGI("buttons call = %d -- %d", _button_number, _event);
+		deive_data.sensor.hammer_detect = 1;
+		vibration_set_duty(deive_data.sensor.vibration_level);
+	}
+	else if( _event == kBUTTONS_EVENT_HOLD)
+	{
+		flash_erase_all_partions();
+		esp_restart();
+		APP_LOGI("Erase all flash and smart config again");
+	}
+
 }
 /***********************************************************************************************************************
 * End of file

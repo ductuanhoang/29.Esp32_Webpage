@@ -64,94 +64,14 @@ void flash_file_init(void)
     }
 }
 
-void flash_save_data(void)
+void flash_erase_all_partions(void)
 {
-    FILE *file;
-    char buffer[256];
-    memset(buffer, 0x00, sizeof(buffer));
-    file = fopen("/spiffs/config.txt", "w");
-
-    //ghi de gia tri vao
-    sprintf(buffer, "%d\n", mqtt_config.time_interval_check_ota);
-    fputs(buffer, file);
-    memset(buffer, 0x00, sizeof(buffer));
-
-    sprintf(buffer, "%d\n", mqtt_config.time_interval_send_data);
-    fputs(buffer, file);
-    memset(buffer, 0x00, sizeof(buffer));
-
-    fclose(file);
+    APP_LOGI("erase all nvs partions");
+    nvs_flash_erase();
+    APP_LOGI("erase all spiffs partions");
+    esp_spiffs_format(conf.partition_label);
+    esp_vfs_spiffs_unregister(&conf);
 }
-
-void flash_read_data(void)
-{
-    char buffer[20];
-    FILE *file;
-    file = fopen("/spiffs/config.txt", "r");
-    if (file == NULL)
-    {
-        memset(buffer, 0x00, sizeof(buffer));
-        file = fopen("/spiffs/config.txt", "w");
-        APP_LOGI("create new file config");
-        //ghi de gia tri vao
-        sprintf(buffer, "%d\n", mqtt_config.time_interval_check_ota);
-        APP_LOGI("buffer = %s", buffer);
-        fputs(buffer, file);
-        APP_LOGI("create new file config 0.1");
-
-        memset(buffer, 0x00, sizeof(buffer));
-        APP_LOGI("create new file config 1");
-        sprintf(buffer, "%d\n", mqtt_config.time_interval_send_data);
-        APP_LOGI("buffer = %s", buffer);
-        fputs(buffer, file);
-
-        memset(buffer, 0x00, sizeof(buffer));
-        fclose(file);
-        APP_LOGI("create new file config end");
-    }
-    else
-    {
-        APP_LOGI("read from file config");
-        int number_elements = 0;
-        int length = 0;
-        // doc thong tin gia tri time config
-        while (fgets(buffer, sizeof(buffer), file))
-        {
-            switch (number_elements)
-            {
-            case 0:
-            {
-                length = strlen(buffer);
-                if (buffer[length - 1] == '\n')
-                    buffer[length - 1] = 0x00;
-                APP_LOGI("buffer = %d", atoi(buffer));
-                mqtt_config.time_interval_check_ota = atoi(buffer);
-                memset(buffer, 0x00, sizeof(buffer));
-                break;
-            }
-            case 1:
-            {
-                length = strlen(buffer);
-                if (buffer[length - 1] == '\n')
-                    buffer[length - 1] = 0x00;
-                APP_LOGI("buffer = %d", atoi(buffer));
-                mqtt_config.time_interval_send_data = atoi(buffer);
-                memset(buffer, 0x00, sizeof(buffer));
-                break;
-            }
-            case 2:
-                break;
-            default:
-                break;
-            }
-            number_elements++;
-        }
-        fclose(file);
-    }
-    APP_LOGI("mqtt_config.time_interval_check_ota =%d", mqtt_config.time_interval_check_ota);
-    APP_LOGI("mqtt_config.time_interval_send_data =%d", mqtt_config.time_interval_send_data);
-}
-
 
 void cb_connection_ok(void *pvParameter)
 {
@@ -163,7 +83,7 @@ void cb_connection_ok(void *pvParameter)
 
     APP_LOGI("I have a connection and my IP is %s!", str_ip);
     deive_data.wifi_status = true;
-    // mqtt_task_start();
+    mqtt_task_start();
 }
 
 void app_main(void)
@@ -181,17 +101,15 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
     // load save param
     UserTimer_Init();
-    memset(mqtt_config.jobId, 0x00, sizeof(mqtt_config.jobId));
-    mqtt_config.time_interval_check_ota = 60;
-    mqtt_config.time_interval_send_data = 10;
+
+    deive_data.sensor.hammer_detect = 0;
+    deive_data.sensor.vibration_level = 0;
 
     buttons_gpio_init();
     leds_gpio_init();
     vibration_init();
     /* start the wifi manager */
     wifi_manager_start();
-    // read interval data from flash
-    flash_read_data();
     /* register a callback as an example to how you can integrate your code with the wifi manager */
     wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok);
 
