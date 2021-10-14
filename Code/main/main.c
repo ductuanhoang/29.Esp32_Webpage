@@ -90,7 +90,7 @@ void cb_connection_ok(void *pvParameter)
 
 void app_main(void)
 {
-    APP_LOGI("--- APP_MAIN: Smart Chair Update 05/03/2021......");
+    APP_LOGI("--- APP_MAIN: Smart Hammer Update 14/10/2021......");
     APP_LOGI("--- APP_MAIN: Free memory: %d bytes", esp_get_free_heap_size());
     //Initialize NVS
     esp_err_t ret = nvs_flash_init();
@@ -101,12 +101,12 @@ void app_main(void)
     }
     flash_file_init();
     ESP_ERROR_CHECK(ret);
+    //Initialize values
+    deive_data.sensor.vibration_level = 50; //setting values vibration_level is 50 percent
+    deive_data.sensor.hammer_detect = 0;
+    deive_data.sensor.vibration_active = false;
     // load save param
     UserTimer_Init();
-
-
-    deive_data.sensor.hammer_detect = 0;
-    deive_data.sensor.vibration_level = 0;
 
     buttons_gpio_init();
     leds_gpio_init();

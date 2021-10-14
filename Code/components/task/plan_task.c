@@ -229,7 +229,7 @@ static void vsm_button_server_access(void)
 		user_button_check._hold_1s = false;
 		APP_LOGI("button hold up");
 		APP_LOGI("strong vibration");
-		vibration_set_duty(50);
+		deive_data.sensor.vibration_active = true;
 	}
 	else if (user_button_check._click)
 	{
