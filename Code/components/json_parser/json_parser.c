@@ -17,6 +17,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "../../Common.h"
 // #include "../Interface/Logger_File/logger_file.h"
 /***********************************************************************************************************************
 * Macro definitions
@@ -52,40 +53,54 @@ bool json_parser_job(const char *message, uint16_t length)
     bool status = true;
     cJSON *root2 = cJSON_ParseWithLength(message, length);
     cJSON *jOperation = cJSON_GetObjectItem(root2, "operation");
+    cJSON *jId = cJSON_GetObjectItem(root2, "id");
     cJSON *value;
     char *operation = (char *)malloc(20 * sizeof(char));
     memset(operation, 0x00, 20 * sizeof(char));
-    if (jOperation)
+    char *_id = (char *)malloc(20 * sizeof(char));
+    memset(_id, 0x00, sizeof(char));
+    if( jId)
     {
-        operation = cJSON_GetObjectItem(root2, "operation")->valuestring;
-        if ((strcmp(operation, TYPE_COMMAND_SETTING) == 0))
+        _id = cJSON_GetObjectItem(root2, "id")->valuestring;
+    }
+    if( strcmp(_id, deive_data.mac_add) == 0 )
+    {
+        if (jOperation)
         {
-            value = cJSON_GetObjectItem(root2, "value");
-            if (value)
+            operation = cJSON_GetObjectItem(root2, "operation")->valuestring;
+            if ((strcmp(operation, TYPE_COMMAND_SETTING) == 0))
             {
-                // if (cJSON_GetObjectItem(root2, "value")->valueint != 0)
-                deive_data.sensor.vibration_level = cJSON_GetObjectItem(root2, "value")->valueint;
-                APP_LOGI("vibration control = %d", deive_data.sensor.vibration_level);
+                value = cJSON_GetObjectItem(root2, "value");
+                if (value)
+                {
+                    // if (cJSON_GetObjectItem(root2, "value")->valueint != 0)
+                    deive_data.sensor.vibration_level = cJSON_GetObjectItem(root2, "value")->valueint;
+                    APP_LOGI("vibration control = %d", deive_data.sensor.vibration_level);
+                }
+                else
+                {
+                    APP_LOGD("unknow value setting");
+                    status = false;
+                }
+            }
+            else if ((strcmp(operation, TYPE_COMMAND_RESTART) == 0))
+            {
+                // restart device
             }
             else
             {
-                APP_LOGD("unknow value setting");
+                APP_LOGD("unknow commnad");
                 status = false;
             }
         }
-        else if ((strcmp(operation, TYPE_COMMAND_RESTART) == 0))
-        {
-            // restart device
-        }
         else
         {
-            APP_LOGD("unknow commnad");
-            status = false;
+            APP_LOGE("not include operation");
         }
     }
     else
     {
-        APP_LOGE("not include operation");
+        APP_LOGE("not error id = %s", _id);
     }
     // cJSON_Delete(jOperation);
     cJSON_Delete(root2);

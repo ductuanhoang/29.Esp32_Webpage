@@ -117,7 +117,7 @@ static void vibration_run_process(void)
 		}
 		break;
 	case 1:
-		if (usertimer_gettick() - time_vibration_run > 500)
+		if (usertimer_gettick() - time_vibration_run > 300)
 		{
 			vibration_set_duty(0);
 			vibration_state = 0;

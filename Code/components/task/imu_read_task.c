@@ -113,7 +113,7 @@ static bool hammer_hit_detection(int32_t acc_z)
         }
         break;
     case 1:
-        if (usertimer_gettick() - hit_detect_time > 300)
+        if (usertimer_gettick() - hit_detect_time > 200)
         {
             hit_detect_state = 0;
             status = true;

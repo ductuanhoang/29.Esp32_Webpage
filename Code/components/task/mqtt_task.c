@@ -165,7 +165,7 @@ static void mqtt_app_start(void)
         // .use_global_ca_store = true,
     };
 
-    // //using cloud mqt
+    //using cloud mqt
     // const esp_mqtt_client_config_t mqtt_cfg = {
     //     .host = "m13.cloudmqtt.com",
     //     .port = 11734,
