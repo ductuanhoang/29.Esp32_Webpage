@@ -6,6 +6,8 @@ This project will read data as : accelerometer and buttons and push add to AWS
 
 #How to config wifi connect to your AP
 ![Screenshot](img/wifi_config_1.jpg)
+<space><space>
 ![Screenshot](img/wifi_config_2.jpg)
+<space><space>
 #How to detect hit using Z axis
 ![Screenshot](img/hit_detection.PNG)
