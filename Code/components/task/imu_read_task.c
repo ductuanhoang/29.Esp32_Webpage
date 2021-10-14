@@ -84,6 +84,7 @@ static void imu_task(void *pvParameters)
             {
                 APP_LOGI("hit detection");
                 deive_data.sensor.hammer_detect = true;
+                deive_data.sensor.vibration_active = true;
             }
         }
         memset(accelerometer, 0x00, sizeof(accelerometer));

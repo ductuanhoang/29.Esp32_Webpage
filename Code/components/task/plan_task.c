@@ -41,7 +41,7 @@ static void vsm_btn_event_release(int btn_idx, int event, void *p);
 static void vsm_btn_event_hold(int btn_idx, int event, void *p);
 static void vsm_btn_reverse_click(void);
 static void vsm_button_server_access(void);
-
+static void vibration_run_process(void);
 static tsButtonConfig btnParams[] = BOARD_BTN_CONFIG;
 /***********************************************************************************************************************
 * Exported global variables and functions (to be accessed by other files)
@@ -86,13 +86,52 @@ static void PlantControl_Task(void *pvParameters)
 		if (deive_data.sensor.vibration_level != _old_vibration_level)
 		{
 			_old_vibration_level = deive_data.sensor.vibration_level;
-			vibration_set_duty(deive_data.sensor.vibration_level);
+			// vibration_set_duty(deive_data.sensor.vibration_level);
 		}
+
+		// vibration run
+		vibration_run_process();
 		// check button here
 		vTaskDelay(10 / portTICK_PERIOD_MS);
 	}
 }
-
+/***********************************************************************************************************************
+* Function Name: vsm_btn_event_release
+* Description  :
+* Arguments    : none
+* Return Value : none
+***********************************************************************************************************************/
+uint32_t time_vibration_run = 0;
+bool vibration_state = 0;
+static void vibration_run_process(void)
+{
+	switch (vibration_state)
+	{
+	case 0:
+		if (deive_data.sensor.vibration_active == true)
+		{
+			deive_data.sensor.vibration_active = false;
+			vibration_state = 1;
+			time_vibration_run = usertimer_gettick();
+			vibration_set_duty(deive_data.sensor.vibration_level);
+		}
+		break;
+	case 1:
+		if (usertimer_gettick() - time_vibration_run > 500)
+		{
+			vibration_set_duty(0);
+			vibration_state = 0;
+		}
+	default:
+		break;
+	}
+}
+/***********************************************************************************************************************
+* Function Name: vsm_btn_event_release
+* Description  :
+* Arguments    : none
+* Return Value : none
+***********************************************************************************************************************/
 static void user_buttons_setup(void)
 {
 	vHardButtonSetGetTickCallback(usertimer_gettick);
@@ -116,7 +155,12 @@ typedef struct
 	bool _click;
 	bool _reverse;
 } user_button_check_t;
-
+/***********************************************************************************************************************
+* Function Name: vsm_btn_event_release
+* Description  :
+* Arguments    : none
+* Return Value : none
+***********************************************************************************************************************/
 user_button_check_t user_button_check;
 
 static void vsm_btn_reverse_click(void)
@@ -167,7 +211,12 @@ static void vsm_btn_reverse_click(void)
 	}
 	_buttons_press_release_old_state = user_button_check._press_release;
 }
-
+/***********************************************************************************************************************
+* Function Name: vsm_btn_event_release
+* Description  :
+* Arguments    : none
+* Return Value : none
+***********************************************************************************************************************/
 static void vsm_button_server_access(void)
 {
 	if (user_button_check._reverse == true)

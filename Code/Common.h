@@ -98,6 +98,7 @@ typedef struct
 	uint8_t vibration_level;
 	bool buttons_hold;
 	e_Hammer_detect hammer_detect;
+	bool vibration_active;
 } sensor_data_t;
 
 typedef struct
