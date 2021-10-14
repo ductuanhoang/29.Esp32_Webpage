@@ -155,26 +155,26 @@ static void mqtt_app_start(void)
     char client_id[50] = "sdk-nodejs-e07c7d1a-1def-45b2-a492-f6874c5dd09e";
     sprintf(deive_data.mac_add, "%s", wifi_get_mac());
     APP_LOGI("Client id: %s", client_id);
-    // const esp_mqtt_client_config_t mqtt_cfg = {
-    //     .uri = "mqtts://am25aqsnybb6p-ats.iot.sa-east-1.amazonaws.com:8883",
-    //     .event_handle = mqtt_event_handler,
-    //     .client_cert_pem = (const char *)client_cert_pem_start,
-    //     .client_key_pem = (const char *)client_key_pem_start,
-    //     .cert_pem = (const char *)server_cert_pem_start,
-    //     .client_id = client_id,
-    //     // .use_global_ca_store = true,
-    // };
-
-    //using cloud mqt
     const esp_mqtt_client_config_t mqtt_cfg = {
-        .host = "m13.cloudmqtt.com",
-        .port = 11734,
-        .client_id = "1234adc",
-        .username = "wcewiofp",
-        .password = "fyFZMCLNvoD9",
-        .keepalive = 60,
+        .uri = "mqtts://am25aqsnybb6p-ats.iot.sa-east-1.amazonaws.com:8883",
         .event_handle = mqtt_event_handler,
+        .client_cert_pem = (const char *)client_cert_pem_start,
+        .client_key_pem = (const char *)client_key_pem_start,
+        .cert_pem = (const char *)server_cert_pem_start,
+        .client_id = client_id,
+        // .use_global_ca_store = true,
     };
+
+    // //using cloud mqt
+    // const esp_mqtt_client_config_t mqtt_cfg = {
+    //     .host = "m13.cloudmqtt.com",
+    //     .port = 11734,
+    //     .client_id = "1234adc",
+    //     .username = "wcewiofp",
+    //     .password = "fyFZMCLNvoD9",
+    //     .keepalive = 60,
+    //     .event_handle = mqtt_event_handler,
+    // };
     // memset(mqtt_cfg.client_id, 0x00, sizeof(MQTT_MAX_CLIENT_LEN));
     memset(mqtt_config.mqtt_topic_pub, 0x00, sizeof(mqtt_config.mqtt_topic_pub));
     memset(mqtt_config.mqtt_topic_pub_err, 0x00, sizeof(mqtt_config.mqtt_topic_pub_err));
