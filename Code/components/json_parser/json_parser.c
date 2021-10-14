@@ -17,7 +17,6 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
 // #include "../Interface/Logger_File/logger_file.h"
 /***********************************************************************************************************************
 * Macro definitions
@@ -52,69 +51,44 @@ bool json_parser_job(const char *message, uint16_t length)
 
     bool status = true;
     cJSON *root2 = cJSON_ParseWithLength(message, length);
-    cJSON *jobId = cJSON_GetObjectItem(root2, "jobId");
+    cJSON *jOperation = cJSON_GetObjectItem(root2, "operation");
     cJSON *value;
-    cJSON *jobDocument;
-    char *operation = (char *)malloc(10 * sizeof(char));
-    memset(operation, 0x00, 10 * sizeof(char));
-
-    if (jobId)
+    char *operation = (char *)malloc(20 * sizeof(char));
+    memset(operation, 0x00, 20 * sizeof(char));
+    if (jOperation)
     {
-        jobDocument = cJSON_GetObjectItem(root2, "jobDocument");
-        //
-        if (jobDocument)
+        operation = cJSON_GetObjectItem(root2, "operation")->valuestring;
+        if ((strcmp(operation, TYPE_COMMAND_SETTING) == 0))
         {
-            operation = cJSON_GetObjectItem(jobDocument, "operation")->valuestring;
-            if ((strcmp(operation, TYPE_COMMAND_SETTING) == 0))
+            value = cJSON_GetObjectItem(root2, "value");
+            if (value)
             {
-                value = cJSON_GetObjectItem(jobDocument, "value");
-                if (value)
-                {
-                    if (cJSON_GetObjectItem(value, "VIBRATION_VALUE")->valueint != 0)
-                        deive_data.sensor.vibration_level = cJSON_GetObjectItem(value, "VIBRATION_VALUE")->valueint;
-
-                    APP_LOGI("vibration control = %d", deive_data.sensor.vibration_level);
-                }
-                else
-                {
-                    APP_LOGD("unknow value setting");
-                    status = false;
-                }
-            }
-            else if ((strcmp(operation, TYPE_COMMAND_RESTART) == 0))
-            {
-                // restart device
+                // if (cJSON_GetObjectItem(root2, "value")->valueint != 0)
+                deive_data.sensor.vibration_level = cJSON_GetObjectItem(root2, "value")->valueint;
+                APP_LOGI("vibration control = %d", deive_data.sensor.vibration_level);
             }
             else
             {
-                APP_LOGD("unknow commnad");
+                APP_LOGD("unknow value setting");
                 status = false;
             }
         }
+        else if ((strcmp(operation, TYPE_COMMAND_RESTART) == 0))
+        {
+            // restart device
+        }
         else
         {
-            APP_LOGD("unknow jobDocument");
+            APP_LOGD("unknow commnad");
+            status = false;
         }
     }
     else
     {
-        APP_LOGD("thing_token have'nt jobID");
-        status = false;
+        APP_LOGE("not include operation");
     }
-
-    // coppy to JobId
-    // if (status == true)
-    // {
-    //     sprintf(mqtt_config.jobId, "%s", cJSON_GetObjectItem(root2, "jobId")->valuestring);
-    //     APP_LOGI("mqtt_config.jobId = %s", mqtt_config.jobId);
-    // }
-    // APP_LOGI("end process 1");
-    // cJSON_Delete(value);
-    // free(operation);
-    // cJSON_Delete(jobDocument);
-    // cJSON_Delete(jobId);
+    // cJSON_Delete(jOperation);
     cJSON_Delete(root2);
-    APP_LOGI("end process 2");
     return status;
 }
 

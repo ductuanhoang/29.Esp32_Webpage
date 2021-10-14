@@ -77,25 +77,26 @@ enum
 
 #define LOG_BUILD_LEVEL E_LOG_LVL_DEBUG
 
-#define GPIO_USER_BUTTON 0
-#define GPIO_INPUT_PIN_SEL (1ULL << GPIO_USER_BUTTON)
-
+#define GPIO_USER_BOOT_BUTTON 0
+#define GPIO_USER_BUTTON 27
+#define GPIO_INPUT_PIN_SEL ((1ULL << GPIO_USER_BOOT_BUTTON) | (1ULL << GPIO_USER_BUTTON))
 
 #define GPIO_USER_LED_GREEN 16
 #define GPIO_USER_LED_RED 17
 #define GPIO_USER_LED_BLUE 4
 
-#define GPIO_OUTPUT_PIN_SEL ((1ULL<<GPIO_USER_LED_GREEN) | (1ULL<<GPIO_USER_LED_RED) | (1ULL<<GPIO_USER_LED_BLUE)) 
+#define GPIO_OUTPUT_PIN_SEL ((1ULL << GPIO_USER_LED_GREEN) | (1ULL << GPIO_USER_LED_RED) | (1ULL << GPIO_USER_LED_BLUE))
 
 typedef enum
 {
 	kHammer_None,
 	kHammer_Active
-}e_Hammer_detect;
+} e_Hammer_detect;
 
 typedef struct
 {
 	uint8_t vibration_level;
+	bool buttons_hold;
 	e_Hammer_detect hammer_detect;
 } sensor_data_t;
 

@@ -23,6 +23,7 @@
 #include "../Common.h"
 #include "../task/mqtt_task.h"
 #include "../task/plan_task.h"
+#include "../task/imu_read_task.h"
 
 #include "../components/json_parser/json_parser.h"
 #include "../components/esp32_wifi_manager/src/wifi_manager.h"
@@ -31,6 +32,7 @@
 #include "../user_driver/user_buttons.h"
 #include "../user_driver/user_leds.h"
 #include "../user_driver/user_vibration_motor.h"
+#include "../user_driver/LSM6DSL_ACC_GYRO_Driver.h"
 /* Can use project configuration menu (idf.py menuconfig) to choose the GPIO to blink,
    or you can edit the following line and set a number here.
 */
@@ -102,6 +104,7 @@ void app_main(void)
     // load save param
     UserTimer_Init();
 
+
     deive_data.sensor.hammer_detect = 0;
     deive_data.sensor.vibration_level = 0;
 
@@ -114,4 +117,5 @@ void app_main(void)
     wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok);
 
     plan_task();
+    imu_read_task();
 }

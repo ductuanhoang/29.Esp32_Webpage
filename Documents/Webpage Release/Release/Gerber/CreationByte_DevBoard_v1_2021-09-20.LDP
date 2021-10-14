@@ -1,0 +1,3 @@
+Layer Pairs Export File for PCB: C:\Users\KyThuat88\OneDrive - khoavanhoc.edu.vn\My project\My Project\CreationByte\Design\CreationByte_DevBoard_v1\CreationByte_DevBoard_v1 PCB.PcbDoc
+LayersSetName=Top_Bot_Thru_Holes|DrillFile=creationbyte_devboard_v1_2021-09-20-roundholes.txt|DrillLayers=gtl,gbl
+LayersSetName=Top_Bot_Slot_Holes|DrillFile=creationbyte_devboard_v1_2021-09-20-slotholes.txt|DrillLayers=gtl,gbl

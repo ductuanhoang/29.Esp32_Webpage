@@ -27,6 +27,7 @@ void user_pwm_start(void);
 void user_pwm_stop(void);
 
 void user_pwm_set_duty(uint8_t _duty);
+
 #ifdef __cplusplus
 }
 #endif

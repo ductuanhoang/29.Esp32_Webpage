@@ -1,0 +1,20 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: CreationByte_DevBoard_v1 PCB.PcbDoc   9/20/2021  10:27:06 PM
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : CreationByte_DevBoard_v1_2021-09-20-RoundHoles.TXT
+ASCII SlotHoles File : CreationByte_DevBoard_v1_2021-09-20-SlotHoles.TXT
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      12mil (0.3mm)                                             Round             167       PTH        0.00inch (0.00mm)
+T2      24mil (0.599mm)                                           Slot              4         PTH        0.00inch (0.00mm)
+T3      32mil (0.8mm)                                             Round             3         PTH        0.00inch (0.00mm)
+T4      35mil (0.899mm)                                           Round             4         PTH        0.00inch (0.00mm)
+T5      59mil (1.501mm)                                           Round             2         PTH        0.00inch (0.00mm)
+T6      98mil (2.499mm)                                           Round             3         PTH        0.00inch (0.00mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              183
+
+Total Processing Time (hh:mm:ss) : 00:00:00

@@ -137,7 +137,7 @@ static char *wifi_get_mac(void);
 void mqtt_task_start(void)
 {
     mqtt_app_start(); // init mqtt connect to AWS
-    xTaskCreatePinnedToCore(mqtt_send_task, "mqtt_send_task", 2 * 1024, NULL, 6 | portPRIVILEGE_BIT, NULL, 1);
+    xTaskCreatePinnedToCore(mqtt_send_task, "mqtt_send_task", 3 * 1024, NULL, 6 | portPRIVILEGE_BIT, NULL, 1);
 }
 /***********************************************************************************************************************
 * Static Functions
@@ -280,6 +280,11 @@ static void mqtt_send_task(void *pvParameters)
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
+}
+
+void mqtt_send_message(uint8_t *action)
+{
+    
 }
 /***********************************************************************************************************************
 * End of file

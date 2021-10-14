@@ -94,8 +94,13 @@ typedef enum {
 
 /************** I2C Address *****************/
 
-#define LSM6DSL_ACC_GYRO_I2C_ADDRESS_LOW   0xD4  // SAD[0] = 0
-#define LSM6DSL_ACC_GYRO_I2C_ADDRESS_HIGH  0xD6  // SAD[0] = 1
+// #define LSM6DSL_ACC_GYRO_I2C_ADDRESS_LOW   0xD4  // SAD[0] = 0
+// #define LSM6DSL_ACC_GYRO_I2C_ADDRESS_HIGH  0xD6  // SAD[0] = 1
+
+/************** I2C Address *****************/
+
+#define LSM6DSL_ACC_GYRO_I2C_ADDRESS_LOW 0x6A  // SAD[0] = 0
+#define LSM6DSL_ACC_GYRO_I2C_ADDRESS_HIGH 0x6B // SAD[0] = 1
 
 /************** Who am I  *******************/
 
@@ -243,6 +248,8 @@ typedef enum {
 
 /************** Generic Function  *******************/
 
+// LSM6DSLStatusTypeDef LSM6DSL_ACC_GYRO_Init(void);
+// int get_device_id(uint8_t *val);
 /*******************************************************************************
 * Register      : Generic - All
 * Address       : Generic - All
