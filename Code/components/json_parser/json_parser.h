@@ -40,5 +40,5 @@ bool json_parser_job(const char *message, uint16_t length);
 // char *json_packet_message_sensor(void);
 void json_packet_message_sensor(char *message_packet);
 
-
+void json_packet_event_buttons(char *message_packet, char *event);
 #endif /* MAIN_JSON_PARSER_JSON_PARSER_H_ */

@@ -5,12 +5,12 @@
  *      Author: ductu
  */
 /***********************************************************************************************************************
-* Pragma directive
-***********************************************************************************************************************/
+ * Pragma directive
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* Includes <System Includes>
-***********************************************************************************************************************/
+ * Includes <System Includes>
+ ***********************************************************************************************************************/
 #include "mqtt_task.h"
 #include "plan_task.h"
 #include "../../Common.h"
@@ -19,20 +19,21 @@
 #include "../user_driver/user_vibration_motor.h"
 #include "../user_driver/user_leds.h"
 /***********************************************************************************************************************
-* Macro definitions
-***********************************************************************************************************************/
-#define BOARD_BTN_CONFIG                                                 \
-	{                                                                    \
-		/*Last state   Idle level    Btn Type   pin   Callback */        \
-		{0, 1, 1, GPIO_USER_BOOT_BUTTON}, /* Rotary Encoder Channel A */ \
-			{0, 1, 1, GPIO_USER_BUTTON},  /* Rotary Encoder Channel B */ \
+ * Macro definitions
+ ***********************************************************************************************************************/
+#define BOARD_BTN_CONFIG                                          \
+	{                                                             \
+		/*Last state   Idle level    Btn Type   pin   Callback */ \
+		{0, 1, 1, GPIO_USER_BUTTON},		  /* User button */   \
+			{0, 1, 1, GPIO_USER_BOOT_BUTTON}, /* Boot button */   \
 	}
 /***********************************************************************************************************************
-* Typedef definitions
-***********************************************************************************************************************/
+ * Typedef definitions
+ ***********************************************************************************************************************/
+typedef void (*mesage_mqtt_callback)(uint8_t*);
 /***********************************************************************************************************************
-* Private global variables and functions
-***********************************************************************************************************************/
+ * Private global variables and functions
+ ***********************************************************************************************************************/
 static void PlantControl_Task(void *pvParameters);
 // static void user_buttons_callback(uint8_t _button_number, e_BUTTON_EVENT _event);
 static void user_buttons_setup(void);
@@ -44,19 +45,19 @@ static void vsm_button_server_access(void);
 static void vibration_run_process(void);
 static tsButtonConfig btnParams[] = BOARD_BTN_CONFIG;
 /***********************************************************************************************************************
-* Exported global variables and functions (to be accessed by other files)
-***********************************************************************************************************************/
+ * Exported global variables and functions (to be accessed by other files)
+ ***********************************************************************************************************************/
 extern void flash_erase_all_partions(void);
 /***********************************************************************************************************************
-* Imported global variables and functions (from other files)
-***********************************************************************************************************************/
+ * Imported global variables and functions (from other files)
+ ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
-* Function Name: 
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
+ * Function Name:
+ * Description  :
+ * Arguments    : none
+ * Return Value : none
+ ***********************************************************************************************************************/
 void plan_task(void)
 {
 	xTaskCreatePinnedToCore(PlantControl_Task, "plant_task", 6 * 1024, NULL, 2 | portPRIVILEGE_BIT, NULL, 1);
@@ -64,8 +65,8 @@ void plan_task(void)
 
 bool mqtt_start_first_time = false;
 /***********************************************************************************************************************
-* Static Functions
-***********************************************************************************************************************/
+ * Static Functions
+ ***********************************************************************************************************************/
 static void PlantControl_Task(void *pvParameters)
 {
 	uint8_t _old_vibration_level = deive_data.sensor.vibration_level;
@@ -96,11 +97,11 @@ static void PlantControl_Task(void *pvParameters)
 	}
 }
 /***********************************************************************************************************************
-* Function Name: vsm_btn_event_release
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
+ * Function Name: vsm_btn_event_release
+ * Description  :
+ * Arguments    : none
+ * Return Value : none
+ ***********************************************************************************************************************/
 uint32_t time_vibration_run = 0;
 bool vibration_state = 0;
 static void vibration_run_process(void)
@@ -127,11 +128,11 @@ static void vibration_run_process(void)
 	}
 }
 /***********************************************************************************************************************
-* Function Name: vsm_btn_event_release
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
+ * Function Name: vsm_btn_event_release
+ * Description  :
+ * Arguments    : none
+ * Return Value : none
+ ***********************************************************************************************************************/
 static void user_buttons_setup(void)
 {
 	vHardButtonSetGetTickCallback(usertimer_gettick);
@@ -156,22 +157,21 @@ typedef struct
 	bool _reverse;
 } user_button_check_t;
 /***********************************************************************************************************************
-* Function Name: vsm_btn_event_release
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
+ * Function Name: vsm_btn_event_release
+ * Description  :
+ * Arguments    : none
+ * Return Value : none
+ ***********************************************************************************************************************/
 user_button_check_t user_button_check;
 
 static void vsm_btn_reverse_click(void)
 {
-	if (user_button_check._hold == true)
+	if ((user_button_check._hold == true) && (_check_state_reverse_click == 0))
 	{
-		user_button_check._hold = false;
 		_time_check_reverse_click = usertimer_gettick();
 		_check_state_reverse_click = 1;
-		APP_LOGI("button hold down");
 	}
+
 	if ((_buttons_press_release_old_state != user_button_check._press_release) &&
 		(user_button_check._press_release == false) &&
 		(_check_state_reverse_click == 0))
@@ -186,64 +186,76 @@ static void vsm_btn_reverse_click(void)
 	else if ((usertimer_gettick() - _time_check_reverse_click > 2000) && (_check_state_reverse_click == 1))
 	{
 		user_button_check._hold_3s = true;
+		_check_state_reverse_click = 2;
 	}
 
 	if ((user_button_check._hold_3s == true) && (user_button_check._press_release == false)) /// hold buttons in 3s
 	{
 		user_button_check._hold_3s = false;
-		_check_state_reverse_click = 2;
+		_check_state_reverse_click = 3;
 		_time_check_reverse_click = usertimer_gettick();
 	}
 
-	if (_check_state_reverse_click == 2)
+	if (_check_state_reverse_click == 3)
 	{
 		if (usertimer_gettick() - _time_check_reverse_click > 500)
 		{
 			_check_state_reverse_click = 0;
-			// user_button_check._hold_1s = true;
+			if ((user_button_check._press_release == false))
+			{
+				user_button_check._hold_1s = true;
+			}
 		}
-		else if (user_button_check._press_release != _buttons_press_release_old_state)
+		else if ((user_button_check._press_release != _buttons_press_release_old_state) && (user_button_check._press_release == true))
 		{
 			_time_check_reverse_click = usertimer_gettick();
 			user_button_check._reverse = true;
-			user_button_check._hold_1s = false;
+			// user_button_check._hold_1s = false;
 		}
 	}
 	_buttons_press_release_old_state = user_button_check._press_release;
 }
 /***********************************************************************************************************************
-* Function Name: vsm_btn_event_release
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
+ * Function Name: vsm_btn_event_release
+ * Description  :
+ * Arguments    : none
+ * Return Value : none
+ ***********************************************************************************************************************/
 static void vsm_button_server_access(void)
 {
 	if (user_button_check._reverse == true)
 	{
-		APP_LOGI("send reverse to sever");
 		user_button_check._reverse = false;
+		APP_LOGI("send reverse to sever");
+		mqtt_send_message("send reverse to sever");
 	}
 	else if (user_button_check._hold_1s == true)
 	{
 		user_button_check._hold_1s = false;
-		APP_LOGI("button hold up");
-		APP_LOGI("strong vibration");
-		deive_data.sensor.vibration_active = true;
+		APP_LOGI("buttonUp true");
+		mqtt_send_message("buttonUp true");
+		// deive_data.sensor.vibration_active = true;
 	}
 	else if (user_button_check._click)
 	{
 		user_button_check._click = false;
-		APP_LOGI("click");
+		APP_LOGI("click false");
+		mqtt_send_message("click false");
+	}
+	else if(user_button_check._hold)
+	{
+		user_button_check._hold = false;
+		APP_LOGI("buttonDown false");
+		mqtt_send_message("buttonDown false");
 	}
 }
 
 /***********************************************************************************************************************
-* Function Name: vsm_btn_event_release
-* Description  :
-* Arguments    : none
-* Return Value : none
-***********************************************************************************************************************/
+ * Function Name: vsm_btn_event_release
+ * Description  :
+ * Arguments    : none
+ * Return Value : none
+ ***********************************************************************************************************************/
 static void vsm_btn_event_press(int btn_idx, int event, void *p)
 {
 	switch (btn_idx)
@@ -292,5 +304,5 @@ static void vsm_btn_event_hold(int btn_idx, int event, void *p)
 	}
 }
 /***********************************************************************************************************************
-* End of file
-***********************************************************************************************************************/
+ * End of file
+ ***********************************************************************************************************************/

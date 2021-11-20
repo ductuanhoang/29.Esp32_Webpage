@@ -24,4 +24,6 @@
 /***         Exported global functions                                     ***/
 /****************************************************************************/
 void mqtt_task_start(void);
+
+void mqtt_send_message(char *event_id);
 #endif /* MAIN_TASK_MQTT_TASK_H_ */
