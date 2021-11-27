@@ -24,8 +24,8 @@
 #define BOARD_BTN_CONFIG                                          \
 	{                                                             \
 		/*Last state   Idle level    Btn Type   pin   Callback */ \
-		{0, 1, 1, GPIO_USER_BUTTON},		  /* User button */   \
 			{0, 1, 1, GPIO_USER_BOOT_BUTTON}, /* Boot button */   \
+		{0, 1, 1, GPIO_USER_BUTTON},		  /* User button */   \
 	}
 /***********************************************************************************************************************
  * Typedef definitions
