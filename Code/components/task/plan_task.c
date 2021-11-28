@@ -163,7 +163,7 @@ typedef struct
  * Return Value : none
  ***********************************************************************************************************************/
 user_button_check_t user_button_check;
-
+bool checking_reverse_state = false;
 static void vsm_btn_reverse_click(void)
 {
 	if ((user_button_check._hold == true) && (_check_state_reverse_click == 0))
@@ -181,6 +181,8 @@ static void vsm_btn_reverse_click(void)
 	else if ((user_button_check._press_release == false) && (_check_state_reverse_click == 1))
 	{
 		user_button_check._hold_1s = true;
+		// APP_LOGD("check 1");
+		checking_reverse_state = false;
 		_check_state_reverse_click = 0;
 	}
 	else if ((usertimer_gettick() - _time_check_reverse_click > 2000) && (_check_state_reverse_click == 1))
@@ -204,12 +206,15 @@ static void vsm_btn_reverse_click(void)
 			if ((user_button_check._press_release == false))
 			{
 				user_button_check._hold_1s = true;
+				// APP_LOGD("check 2");
+				checking_reverse_state = false;
 			}
 		}
 		else if ((user_button_check._press_release != _buttons_press_release_old_state) && (user_button_check._press_release == true))
 		{
 			_time_check_reverse_click = usertimer_gettick();
 			user_button_check._reverse = true;
+			checking_reverse_state = true;
 			// user_button_check._hold_1s = false;
 		}
 	}
@@ -232,6 +237,7 @@ static void vsm_button_server_access(void)
 	else if (user_button_check._hold_1s == true)
 	{
 		user_button_check._hold_1s = false;
+		user_button_check._hold = false;
 		APP_LOGI("buttonUp true");
 		mqtt_send_message("buttonUp true");
 		// deive_data.sensor.vibration_active = true;
@@ -242,7 +248,7 @@ static void vsm_button_server_access(void)
 		APP_LOGI("click false");
 		mqtt_send_message("click false");
 	}
-	else if(user_button_check._hold)
+	else if((user_button_check._hold) && (checking_reverse_state == false))
 	{
 		user_button_check._hold = false;
 		APP_LOGI("buttonDown false");
