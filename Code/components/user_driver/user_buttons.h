@@ -14,7 +14,7 @@ extern "C"
 /****************************************************************************/
 #define MAX_BTN_SUPPORT (5u)
 #define PERIOD_SCAN_IN_MS (200)
-#define BUTTON_HOLD_TIME (1000)
+#define BUTTON_HOLD_TIME (500)
 #define BUTTON_HOLD_TIME_2 (3000)
 
 #define BUTTON_ON_HOLD_TIME_FIRE_EVENT (200)

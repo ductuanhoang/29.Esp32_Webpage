@@ -185,7 +185,7 @@ static void vsm_btn_reverse_click(void)
 		checking_reverse_state = false;
 		_check_state_reverse_click = 0;
 	}
-	else if ((usertimer_gettick() - _time_check_reverse_click > 2000) && (_check_state_reverse_click == 1))
+	else if ((usertimer_gettick() - _time_check_reverse_click > 500) && (_check_state_reverse_click == 1))
 	{
 		user_button_check._hold_3s = true;
 		_check_state_reverse_click = 2;
