@@ -200,7 +200,7 @@ static void vsm_btn_reverse_click(void)
 
 	if (_check_state_reverse_click == 3)
 	{
-		if (usertimer_gettick() - _time_check_reverse_click > 1000)
+		if (usertimer_gettick() - _time_check_reverse_click > 500)
 		{
 			_check_state_reverse_click = 0;
 			if ((user_button_check._press_release == false))
