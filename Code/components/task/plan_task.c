@@ -181,7 +181,7 @@ static void vsm_btn_reverse_click(void)
 	else if ((user_button_check._press_release == false) && (_check_state_reverse_click == 1))
 	{
 		user_button_check._hold_1s = true;
-		// APP_LOGD("check 1");
+		APP_LOGD("check 1 = %d", usertimer_gettick());
 		checking_reverse_state = false;
 		_check_state_reverse_click = 0;
 	}
@@ -200,17 +200,30 @@ static void vsm_btn_reverse_click(void)
 
 	if (_check_state_reverse_click == 3)
 	{
-		if (usertimer_gettick() - _time_check_reverse_click > 500)
+		// if (usertimer_gettick() - _time_check_reverse_click > 500)
+		// {
+		// 	_check_state_reverse_click = 0;
+		// 	if ((user_button_check._press_release == false))
+		// 	{
+		// 		user_button_check._hold_1s = true;
+		// 		APP_LOGD("check 2 = %d", usertimer_gettick());
+		// 		checking_reverse_state = false;
+		// 	}
+		// }
+		// else
+		if( user_button_check._press_release == true ) 
 		{
-			_check_state_reverse_click = 0;
-			if ((user_button_check._press_release == false))
-			{
-				user_button_check._hold_1s = true;
-				// APP_LOGD("check 2");
-				checking_reverse_state = false;
-			}
+			_time_check_reverse_click = usertimer_gettick();
 		}
-		else if ((user_button_check._press_release != _buttons_press_release_old_state) && (user_button_check._press_release == true))
+		else if( (usertimer_gettick() - _time_check_reverse_click > 500) && (user_button_check._press_release == false))
+		{
+			user_button_check._hold_1s = true;
+			_check_state_reverse_click = 0;
+			checking_reverse_state = false;
+			APP_LOGD("check 2 = %d", usertimer_gettick());
+		}
+		
+		if ((user_button_check._press_release != _buttons_press_release_old_state) && (user_button_check._press_release == true))
 		{
 			_time_check_reverse_click = usertimer_gettick();
 			user_button_check._reverse = true;
@@ -231,27 +244,27 @@ static void vsm_button_server_access(void)
 	if (user_button_check._reverse == true)
 	{
 		user_button_check._reverse = false;
-		APP_LOGI("send reverse to sever");
+		APP_LOGI("send reverse to sever = %d", usertimer_gettick());
 		mqtt_send_message("send reverse to sever");
 	}
 	else if (user_button_check._hold_1s == true)
 	{
 		user_button_check._hold_1s = false;
 		user_button_check._hold = false;
-		APP_LOGI("buttonUp true");
+		APP_LOGI("buttonUp true = %d", usertimer_gettick());
 		mqtt_send_message("buttonUp true");
 		// deive_data.sensor.vibration_active = true;
 	}
 	else if (user_button_check._click)
 	{
 		user_button_check._click = false;
-		APP_LOGI("click false");
+		APP_LOGI("click false = %d", usertimer_gettick());
 		mqtt_send_message("click false");
 	}
 	else if((user_button_check._hold) && (checking_reverse_state == false))
 	{
 		user_button_check._hold = false;
-		APP_LOGI("buttonDown false");
+		APP_LOGI("buttonDown false = %d", usertimer_gettick());
 		mqtt_send_message("buttonDown false");
 	}
 }
